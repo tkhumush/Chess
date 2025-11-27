@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    @apply h-full;
+  }
+  
+  body {
+    @apply h-full bg-gray-50 font-chess text-gray-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  #root {
+    @apply h-full;
+  }
+}
+
+@layer components {
+  .chess-board {
+    @apply aspect-square max-w-md mx-auto shadow-lg rounded-lg overflow-hidden;
+  }
+  
+  .move-highlight {
+    @apply bg-yellow-200 dark:bg-yellow-800 rounded-sm;
+  }
+  
+  .zap-button {
+    @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium transition-all duration-200;
+    @apply bg-yellow-100 text-yellow-800 hover:bg-yellow-200;
+    @apply dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800;
+  }
+  
+  .zap-button:active {
+    @apply animate-zap-ping;
+  }
+  
+  .player-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border;
+    @apply border-gray-200 dark:border-gray-700;
+  }
+  
+  .game-controls {
+    @apply flex gap-2 items-center justify-center p-4 bg-white dark:bg-gray-800;
+    @apply border-t border-gray-200 dark:border-gray-700;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors;
+    @apply bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2;
+    @apply focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors;
+    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:outline-none focus:ring-2;
+    @apply focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600;
+  }
+  
+  .btn-danger {
+    @apply inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors;
+    @apply bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2;
+    @apply focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}

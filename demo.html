@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nostr Chess - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 400px;
+            height: 400px;
+            border: 2px solid #333;
+            margin: 0 auto;
+        }
+        .chess-square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .chess-square.light {
+            background-color: #f0d9b5;
+        }
+        .chess-square.dark {
+            background-color: #b58863;
+        }
+        .chess-square:hover {
+            background-color: #646f40 !important;
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-gray-900">♛ Chess</h1>
+                    <span class="text-sm text-gray-500">Decentralized Multiplayer</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                        <span class="text-sm text-gray-600">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Game Page Demo -->
+        <div id="game-page" class="hidden">
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-900">Classical Chess</h1>
+                    <div class="flex items-center space-x-4 text-sm text-gray-600">
+                        <span>Move 5</span>
+                        <span>•</span>
+                        <span class="flex items-center">
+                            <div class="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
+                            Live Game
+                        </span>
+                        <span>•</span>
+                        <span>3 watching</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Left Column - Players and Board -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Top Player -->
+                    <div class="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                                    <span class="text-gray-600 font-medium">O</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <h3 class="font-medium text-gray-900">Opponent</h3>
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-3 h-3 rounded-full bg-gray-800"></div>
+                                            <span class="text-xs text-gray-500">black</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                        <span class="text-xs text-gray-600">Thinking...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right space-y-2">
+                                <div class="text-lg font-mono font-bold text-blue-600">9:23</div>
+                                <button class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">⚡ Tip</button>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="w-full h-1 rounded-full bg-blue-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chess Board -->
+                    <div class="flex justify-center">
+                        <div class="chess-board" id="chess-board"></div>
+                    </div>
+
+                    <!-- Bottom Player -->
+                    <div class="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-medium">Y</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <h3 class="font-medium text-gray-900">You</h3>
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-3 h-3 rounded-full bg-gray-200 border-2 border-gray-800"></div>
+                                            <span class="text-xs text-gray-500">white</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                        <span class="text-xs text-gray-600">Your turn</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right space-y-2">
+                                <div class="text-lg font-mono font-bold text-gray-900">8:47</div>
+                                <button class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">⚡ 0</button>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="w-full h-1 rounded-full bg-gray-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- Game Controls -->
+                    <div class="flex gap-2 items-center justify-center p-4 bg-white border-t border-gray-200">
+                        <button class="btn-secondary flex-1 px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md">Offer Draw</button>
+                        <button class="btn-secondary flex-1 px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md">Request Takeback</button>
+                        <button class="btn-danger flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md">Resign</button>
+                    </div>
+                </div>
+
+                <!-- Right Column - Move List -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="border-b border-gray-200">
+                            <nav class="flex">
+                                <button class="flex-1 px-4 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-600">Moves</button>
+                                <button class="flex-1 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500">Spectators (3)</button>
+                            </nav>
+                        </div>
+                        <div class="h-96 overflow-y-auto p-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center text-sm">
+                                    <div class="w-8 text-gray-500 font-mono text-xs">1.</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-2 py-1 rounded text-left font-mono text-gray-900 hover:bg-gray-100">e4</button>
+                                            <button class="px-1 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">⚡ 2</button>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-2 py-1 rounded text-left font-mono text-gray-900 hover:bg-gray-100">e5</button>
+                                            <button class="px-1 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">⚡ 1</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <div class="w-8 text-gray-500 font-mono text-xs">2.</div>
+                                    <div class="flex-1 min-w-0">
+                                        <button class="px-2 py-1 rounded text-left font-mono text-gray-900 hover:bg-gray-100">Nf3</button>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <button class="px-2 py-1 rounded text-left font-mono text-gray-900 hover:bg-gray-100">Nc6</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <div class="w-8 text-gray-500 font-mono text-xs">3.</div>
+                                    <div class="flex-1 min-w-0">
+                                        <button class="px-2 py-1 rounded text-left font-mono bg-blue-100 text-blue-800">Bb5</button>
+                                    </div>
+                                    <div class="flex-1 min-w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button class="w-full px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md text-sm">Copy PGN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Page Demo -->
+        <div id="home-page">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to Nostr Chess</h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Play decentralized multiplayer chess on the Nostr protocol. 
+                    Find opponents, play games, and tip brilliant moves with Lightning.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-4xl mb-3">⚡</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Quick Match</h3>
+                    <p class="text-gray-600 mb-4 text-sm">Find an opponent at your skill level instantly</p>
+                    <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onclick="startDemo()">
+                        Quick Match
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-4xl mb-3">🎯</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Create Game</h3>
+                    <p class="text-gray-600 mb-4 text-sm">Set your own rules and wait for opponents</p>
+                    <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create Game</button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="text-4xl mb-3">👀</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Watch Games</h3>
+                    <p class="text-gray-600 mb-4 text-sm">Spectate live games and tip great moves</p>
+                    <button class="w-full px-4 py-2 bg-gray-200 text-gray-900 rounded-md" disabled>Coming Soon</button>
+                </div>
+            </div>
+
+            <div class="mt-16 bg-gray-50 rounded-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Why Nostr Chess?</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🔒</div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Decentralized</h3>
+                        <p class="text-sm text-gray-600">No central server. Your games live on the Nostr network.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">⚡</div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Lightning Tips</h3>
+                        <p class="text-sm text-gray-600">Tip players and react to brilliant moves with Bitcoin.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🌐</div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Open Source</h3>
+                        <p class="text-sm text-gray-600">Transparent, auditable, and community-driven development.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🎮</div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Multiple Variants</h3>
+                        <p class="text-sm text-gray-600">Classical, rapid, blitz, and more variants coming soon.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Chess piece symbols
+        const pieces = {
+            'white': {
+                'king': '♔', 'queen': '♕', 'rook': '♖', 
+                'bishop': '♗', 'knight': '♘', 'pawn': '♙'
+            },
+            'black': {
+                'king': '♚', 'queen': '♛', 'rook': '♜', 
+                'bishop': '♝', 'knight': '♞', 'pawn': '♟'
+            }
+        };
+
+        // Initial chess position
+        const initialPosition = [
+            ['♜','♞','♝','♛','♚','♝','♞','♜'],
+            ['♟','♟','♟','♟','♟','♟','♟','♟'],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['♙','♙','♙','♙','♙','♙','♙','♙'],
+            ['♖','♘','♗','♕','♔','♗','♘','♖']
+        ];
+
+        function createChessBoard() {
+            const board = document.getElementById('chess-board');
+            if (!board) return;
+
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `chess-square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.textContent = initialPosition[row][col];
+                    square.onclick = () => {
+                        // Simple move animation
+                        square.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            square.style.transform = 'scale(1)';
+                        }, 200);
+                    };
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        function startDemo() {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('game-page').classList.remove('hidden');
+            createChessBoard();
+        }
+
+        // Initialize the chess board when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            createChessBoard();
+        });
+    </script>
+</body>
+</html>
