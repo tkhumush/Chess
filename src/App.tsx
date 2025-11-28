@@ -1,6 +1,3 @@
-// TODO: Replace with actual React imports when packages are installed
-// import React from 'react'
-import React from './lib/react'
 import { useAppStore } from './stores/appStore'
 import HomePage from './pages/HomePage'
 import GamePage from './pages/GamePage'

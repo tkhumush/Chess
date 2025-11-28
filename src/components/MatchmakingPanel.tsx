@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useAppStore } from '@/stores/appStore'
 import type { SkillLevel, GameVariant } from '@/types/chess'
 

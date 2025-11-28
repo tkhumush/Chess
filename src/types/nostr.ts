@@ -43,70 +43,32 @@ export interface RelayStatus {
 export interface GameOfferEvent extends NostrEvent {
   kind: typeof CHESS_EVENT_KINDS.GAME_OFFER
   content: string // JSON encoded game offer
-  tags: [
-    ['t', 'chess-offer' | 'chess-accept'],
-    ['skill', string],
-    ['variant', string],
-    ['time', string],
-    ['expires', string]?,
-    ['e', string]?, // for acceptance events
-    ['p', string]?, // for acceptance events
-    ['game', string]?, // for acceptance events
-  ]
+  tags: string[][] // Tags include: ['t', 'chess-offer'|'chess-accept'], ['skill'], ['variant'], ['time'], etc.
 }
 
 export interface LiveGameEvent extends NostrEvent {
   kind: typeof CHESS_EVENT_KINDS.LIVE_GAME
   content: string // SAN move notation
-  tags: [
-    ['d', string], // game identifier
-    ['p', string], // white player
-    ['p', string], // black player
-    ['move', string], // move number
-    ['turn', 'white' | 'black'],
-    ['san', string], // move in SAN
-    ['fen', string], // board state
-    ['e', string]?, // previous move event
-  ]
+  tags: string[][] // Tags include: ['d', game-id], ['p', player-pubkeys], ['move'], ['turn'], ['san'], ['fen'], ['e', prev-event]
 }
 
 export interface ArchiveGameEvent extends NostrEvent {
   kind: typeof CHESS_EVENT_KINDS.FINAL_ARCHIVE
   content: string // Complete PGN
-  tags: [
-    ['t', 'chess-game'],
-    ['white', string], // white player pubkey
-    ['black', string], // black player pubkey
-    ['result', '1-0' | '0-1' | '1/2-1/2'],
-    ['game', string], // game identifier
-    ['variant', string],
-  ]
+  tags: string[][] // Tags include: ['t', 'chess-game'], ['white'], ['black'], ['result'], ['game'], ['variant']
 }
 
 // Zap event types (re-exported for convenience)
 export interface ZapRequestEvent extends NostrEvent {
   kind: typeof CHESS_EVENT_KINDS.ZAP_REQUEST
   content: string // optional message
-  tags: [
-    ['relays', ...string[]],
-    ['amount', string],
-    ['lnurl', string],
-    ['p', string], // recipient
-    ['e', string]?, // target event (for move zaps)
-  ]
+  tags: string[][] // Tags include: ['relays', ...urls], ['amount'], ['lnurl'], ['p', recipient], ['e', target-event]
 }
 
 export interface ZapReceiptEvent extends NostrEvent {
   kind: typeof CHESS_EVENT_KINDS.ZAP_RECEIPT
   content: string // usually empty
-  tags: [
-    ['p', string], // zap recipient
-    ['P', string]?, // zap sender
-    ['e', string]?, // target event
-    ['bolt11', string], // lightning invoice
-    ['description', string], // JSON encoded zap request
-    ['preimage', string]?,
-  ]
+  tags: string[][] // Tags include: ['p', recipient], ['P', sender], ['e', event], ['bolt11'], ['description'], ['preimage']
 }
 
 // Union type for all chess events

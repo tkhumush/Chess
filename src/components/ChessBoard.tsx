@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { Square } from 'react-chessboard/dist/chessboard/types'
 import { useAppStore } from '@/stores/appStore'

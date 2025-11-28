@@ -1,4 +1,3 @@
-import React from 'react'
 import { useAppStore } from '@/stores/appStore'
 import type { GameState } from '@/types/chess'
 import ZapButton from './ZapButton'

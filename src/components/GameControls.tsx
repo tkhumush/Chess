@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { GameState } from '@/types/chess'
 
 interface GameControlsProps {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useAppStore } from '@/stores/appStore'
 import MatchmakingPanel from '@/components/MatchmakingPanel'
 import GameHistory from '@/components/GameHistory'

@@ -4,7 +4,7 @@
 // import { subscribeWithSelector } from 'zustand/middleware'
 
 import { create, subscribeWithSelector } from '@/lib/store'
-import { MockChessEngine } from '@/lib/chess'
+import { ChessEngine } from '@/lib/chess'
 import type {
   GameState,
   GameOffer,
@@ -122,11 +122,11 @@ export const useAppStore = create<AppStore>()(
     ...initialState,
 
     // Auth actions
-    setKeys: (keys) => set({ keys }),
-    setProfile: (profile) => set({ profile }),
+    setKeys: (keys: NostrKeyPair | null) => set({ keys }),
+    setProfile: (profile: NostrProfile | null) => set({ profile }),
 
     // Game actions
-    startGame: (gameState) => set({ currentGame: gameState }),
+    startGame: (gameState: GameState) => set({ currentGame: gameState }),
 
     endGame: () => {
       const { currentGame } = get()
@@ -157,7 +157,7 @@ export const useAppStore = create<AppStore>()(
           eventId: '', // TODO: set archive event ID
         }
 
-        set(state => ({
+        set((state) => ({
           currentGame: null,
           gameHistory: [record, ...state.gameHistory],
           selectedMove: null,
@@ -165,7 +165,7 @@ export const useAppStore = create<AppStore>()(
       }
     },
 
-    makeMove: (san) => {
+    makeMove: (san: string) => {
       const { currentGame } = get()
       if (!currentGame) return false
 
@@ -185,7 +185,7 @@ export const useAppStore = create<AppStore>()(
           zaps: [],
         }
 
-        set(state => ({
+        set((state) => ({
           currentGame: {
             ...currentGame,
             moves: [...currentGame.moves, newMove],
@@ -204,10 +204,10 @@ export const useAppStore = create<AppStore>()(
       }
     },
 
-    selectMove: (moveIndex) => set({ selectedMove: moveIndex }),
+    selectMove: (moveIndex: number | null) => set({ selectedMove: moveIndex }),
 
     // Matchmaking actions
-    createGameOffer: (offer) => {
+    createGameOffer: (offer: Omit<GameOffer, 'id' | 'eventId' | 'pubkey'>) => {
       const { keys } = get()
       if (!keys) return
 
@@ -224,35 +224,35 @@ export const useAppStore = create<AppStore>()(
       }))
     },
 
-    acceptGameOffer: (offerId) => {
+    acceptGameOffer: (offerId: string) => {
       // TODO: Implement game acceptance logic
       console.log('Accepting game offer:', offerId)
     },
 
-    cancelGameOffer: (offerId) => {
-      set(state => ({
-        myOffers: state.myOffers.filter(offer => offer.id !== offerId)
+    cancelGameOffer: (offerId: string) => {
+      set((state) => ({
+        myOffers: state.myOffers.filter((offer) => offer.id !== offerId)
       }))
     },
 
-    updateAvailableGames: (games) => set({ availableGames: games }),
+    updateAvailableGames: (games: GameOffer[]) => set({ availableGames: games }),
 
     // Network actions
-    updateRelayStatus: (relayStatus) => {
-      const isConnected = relayStatus.some(relay => relay.connected)
+    updateRelayStatus: (relayStatus: RelayStatus[]) => {
+      const isConnected = relayStatus.some((relay) => relay.connected)
       set({ relayStatus, isConnected })
     },
 
-    setConnected: (isConnected) => set({ isConnected }),
+    setConnected: (isConnected: boolean) => set({ isConnected }),
 
     // UI actions
-    setSidePanel: (sidePanel) => set({ sidePanel }),
+    setSidePanel: (sidePanel: 'moves' | 'spectators' | 'chat') => set({ sidePanel }),
     toggleSpectators: () => set(state => ({ showSpectators: !state.showSpectators })),
     toggleZaps: () => set(state => ({ zapsEnabled: !state.zapsEnabled })),
 
     // Preferences
-    setSkillLevel: (skillLevel) => set({ skillLevel }),
-    setPreferredVariant: (preferredVariant) => set({ preferredVariant }),
+    setSkillLevel: (skillLevel: SkillLevel) => set({ skillLevel }),
+    setPreferredVariant: (preferredVariant: GameVariant) => set({ preferredVariant }),
     toggleAutoAcceptDraws: () => set(state => ({ autoAcceptDraws: !state.autoAcceptDraws })),
     toggleSound: () => set(state => ({ soundEnabled: !state.soundEnabled })),
 
@@ -292,6 +292,6 @@ export function createGameState(
     currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     startTime: Date.now(),
     spectatorCount: 0,
-    chess: new MockChessEngine(),
+    chess: new ChessEngine(),
   }
 }

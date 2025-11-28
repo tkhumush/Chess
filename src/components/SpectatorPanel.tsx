@@ -1,4 +1,3 @@
-import React from 'react'
 
 export default function SpectatorPanel() {
   // TODO: Implement spectator list from Nostr events

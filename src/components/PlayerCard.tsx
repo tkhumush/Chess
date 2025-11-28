@@ -1,4 +1,3 @@
-import React from 'react'
 import type { GamePlayer, GameStatus } from '@/types/chess'
 import ZapButton from './ZapButton'
 

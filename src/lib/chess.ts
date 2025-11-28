@@ -1,7 +1,9 @@
 /**
- * Chess engine utilities and validation
+ * Chess engine utilities and validation using chess.js
  * Handles chess logic, move validation, and PGN generation
  */
+
+import { Chess } from 'chess.js'
 
 export interface ChessPosition {
   fen: string
@@ -22,170 +24,236 @@ export interface ChessMove {
   captured?: string
   promotion?: string
   flags: string
+  color: 'w' | 'b'
 }
 
 /**
- * Mock chess engine for development
- * TODO: Replace with actual chess.js implementation
+ * Chess engine wrapper around chess.js
+ * Provides a consistent interface for chess operations
  */
-export class MockChessEngine {
-  private position: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-  private moveHistory: string[] = []
-  private gameOver: boolean = false
+export class ChessEngine {
+  private game: Chess
 
   constructor(fen?: string) {
-    if (fen) {
-      this.position = fen
-    }
+    this.game = new Chess(fen)
   }
 
+  /**
+   * Get current FEN position
+   */
   fen(): string {
-    return this.position
+    return this.game.fen()
   }
 
+  /**
+   * Get PGN of the game
+   */
   pgn(): string {
-    if (this.moveHistory.length === 0) return '*'
-    
-    let pgn = ''
-    for (let i = 0; i < this.moveHistory.length; i += 2) {
-      const moveNumber = Math.floor(i / 2) + 1
-      pgn += `${moveNumber}. ${this.moveHistory[i]}`
-      if (this.moveHistory[i + 1]) {
-        pgn += ` ${this.moveHistory[i + 1]}`
-      }
-      pgn += ' '
-    }
-    
-    if (this.gameOver) {
-      pgn += '1-0' // Mock result
-    } else {
-      pgn += '*'
-    }
-    
-    return pgn.trim()
+    return this.game.pgn()
   }
 
-  history(): string[] {
-    return [...this.moveHistory]
+  /**
+   * Get move history
+   */
+  history(options?: { verbose: boolean }): string[] | ChessMove[] {
+    return this.game.history(options as any)
   }
 
+  /**
+   * Get current turn
+   */
   turn(): 'w' | 'b' {
-    return this.moveHistory.length % 2 === 0 ? 'w' : 'b'
+    return this.game.turn()
   }
 
+  /**
+   * Check if game is over
+   */
   isGameOver(): boolean {
-    return this.gameOver
+    return this.game.isGameOver()
   }
 
+  /**
+   * Check if current position is checkmate
+   */
   isCheckmate(): boolean {
-    return this.gameOver && this.moveHistory.length > 10 // Mock checkmate after 5+ moves
+    return this.game.isCheckmate()
   }
 
+  /**
+   * Check if current position is stalemate
+   */
   isStalemate(): boolean {
-    return false // Mock - no stalemate
+    return this.game.isStalemate()
   }
 
+  /**
+   * Check if current position is a draw
+   */
   isDraw(): boolean {
-    return false // Mock - no draws
+    return this.game.isDraw()
   }
 
+  /**
+   * Check if king is in check
+   */
   isCheck(): boolean {
-    return false // Mock - no check detection
+    return this.game.isCheck()
   }
 
+  /**
+   * Check if position is threefold repetition
+   */
+  isThreefoldRepetition(): boolean {
+    return this.game.isThreefoldRepetition()
+  }
+
+  /**
+   * Check if insufficient material for checkmate
+   */
+  isInsufficientMaterial(): boolean {
+    return this.game.isInsufficientMaterial()
+  }
+
+  /**
+   * Get all legal moves
+   * @param options - Optional filters (square, verbose)
+   */
   moves(options?: { square?: string; verbose?: boolean }): any[] {
-    // Mock legal moves
-    const allMoves = ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6']
-    
-    if (options?.verbose) {
-      return allMoves.map(san => ({
-        san,
-        from: 'e2',
-        to: 'e4',
-        piece: 'p',
-        flags: '',
-      }))
-    }
-    
-    return allMoves
+    return this.game.moves(options as any)
   }
 
+  /**
+   * Make a move
+   * @param move - Move in SAN notation or {from, to, promotion} object
+   */
   move(move: string | { from: string; to: string; promotion?: string }): ChessMove | null {
-    let san: string
-    
-    if (typeof move === 'string') {
-      san = move
-    } else {
-      // Convert algebraic to SAN (simplified)
-      san = move.from + move.to
-      if (move.promotion) {
-        san += '=' + move.promotion.toUpperCase()
+    try {
+      const result = this.game.move(move as any)
+      if (!result) return null
+
+      return {
+        from: result.from,
+        to: result.to,
+        san: result.san,
+        piece: result.piece,
+        captured: result.captured,
+        promotion: result.promotion,
+        flags: result.flags,
+        color: result.color,
       }
-    }
-    
-    // Mock validation - accept common opening moves
-    const validMoves = ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6', 'O-O', 'Be7']
-    
-    if (!validMoves.includes(san) && this.moveHistory.length < 10) {
-      return null // Invalid move
-    }
-    
-    // Add move to history
-    this.moveHistory.push(san)
-    
-    // Update position (simplified)
-    this.updatePosition(san)
-    
-    // Check for game over (mock after 20 moves)
-    if (this.moveHistory.length >= 20) {
-      this.gameOver = true
-    }
-    
-    return {
-      san,
-      from: 'e2',
-      to: 'e4',
-      piece: 'p',
-      flags: '',
+    } catch (error) {
+      return null
     }
   }
 
-  private updatePosition(san: string): void {
-    // Mock position update - just increment move counter
-    const parts = this.position.split(' ')
-    const fullMoveNumber = parseInt(parts[5]) + (this.turn() === 'w' ? 1 : 0)
-    const halfMoveNumber = parseInt(parts[4]) + 1
-    
-    parts[1] = this.turn() === 'w' ? 'b' : 'w' // Switch turn
-    parts[4] = halfMoveNumber.toString()
-    if (this.turn() === 'w') {
-      parts[5] = fullMoveNumber.toString()
-    }
-    
-    this.position = parts.join(' ')
-  }
-
+  /**
+   * Load a position from FEN
+   */
   load(fen: string): boolean {
     try {
-      this.position = fen
+      this.game.load(fen)
       return true
     } catch (error) {
       return false
     }
   }
 
+  /**
+   * Reset to starting position
+   */
   reset(): void {
-    this.position = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    this.moveHistory = []
-    this.gameOver = false
+    this.game.reset()
+  }
+
+  /**
+   * Undo last move
+   */
+  undo(): ChessMove | null {
+    const result = this.game.undo()
+    if (!result) return null
+
+    return {
+      from: result.from,
+      to: result.to,
+      san: result.san,
+      piece: result.piece,
+      captured: result.captured,
+      promotion: result.promotion,
+      flags: result.flags,
+      color: result.color,
+    }
+  }
+
+  /**
+   * Get the piece at a square
+   */
+  get(square: string): { type: string; color: 'w' | 'b' } | null {
+    return this.game.get(square as any)
+  }
+
+  /**
+   * Put a piece on a square
+   */
+  put(piece: { type: string; color: 'w' | 'b' }, square: string): boolean {
+    return this.game.put(piece as any, square as any)
+  }
+
+  /**
+   * Remove a piece from a square
+   */
+  remove(square: string): { type: string; color: 'w' | 'b' } | null {
+    return this.game.remove(square as any)
+  }
+
+  /**
+   * Get current position as object
+   */
+  getPosition(): ChessPosition {
+    return {
+      fen: this.fen(),
+      moves: this.history() as string[],
+      turn: this.turn(),
+      isGameOver: this.isGameOver(),
+      isCheck: this.isCheck(),
+      isCheckmate: this.isCheckmate(),
+      isStalemate: this.isStalemate(),
+      isDraw: this.isDraw(),
+    }
+  }
+
+  /**
+   * Get ASCII representation of the board
+   */
+  ascii(): string {
+    return this.game.ascii()
+  }
+
+  /**
+   * Load PGN
+   */
+  loadPgn(pgn: string): boolean {
+    try {
+      this.game.loadPgn(pgn)
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
+  /**
+   * Get the underlying chess.js instance
+   */
+  getGame(): Chess {
+    return this.game
   }
 }
 
 /**
  * Create a new chess engine instance
  */
-export function createChessEngine(fen?: string): MockChessEngine {
-  return new MockChessEngine(fen)
+export function createChessEngine(fen?: string): ChessEngine {
+  return new ChessEngine(fen)
 }
 
 /**
@@ -196,7 +264,7 @@ export function validateMove(san: string): boolean {
   const sanRegex = /^[NBRQK]?[a-h]?[1-8]?x?[a-h][1-8](=[NBRQ])?[+#]?$/
   const pawnMoveRegex = /^[a-h][1-8](=[NBRQ])?[+#]?$/
   const castleRegex = /^(O-O|O-O-O)[+#]?$/
-  
+
   return sanRegex.test(san) || pawnMoveRegex.test(san) || castleRegex.test(san)
 }
 
@@ -216,47 +284,46 @@ export function parsePGN(pgn: string): {
   headers: Record<string, string>
   moves: string[]
 } {
-  const lines = pgn.trim().split('\n')
-  const headers: Record<string, string> = {}
-  const moves: string[] = []
-  
-  let inHeaders = true
-  
-  for (const line of lines) {
-    if (inHeaders && line.startsWith('[') && line.endsWith(']')) {
-      const match = line.match(/\[(\w+)\s+"(.*)"\]/)
-      if (match) {
-        headers[match[1]] = match[2]
-      }
-    } else if (line.trim() === '') {
-      inHeaders = false
-    } else if (!inHeaders) {
-      // Extract moves (simplified)
-      const moveMatches = line.match(/\d+\.\s*(\S+)(?:\s+(\S+))?/g)
-      if (moveMatches) {
-        for (const match of moveMatches) {
-          const parts = match.split(/\s+/)
-          if (parts[1]) moves.push(parts[1])
-          if (parts[2]) moves.push(parts[2])
-        }
-      }
+  const game = new Chess()
+  try {
+    game.loadPgn(pgn)
+    const history = game.history()
+
+    // Extract headers from PGN
+    const headers: Record<string, string> = {}
+    const headerRegex = /\[(\w+)\s+"([^"]+)"\]/g
+    let match
+    while ((match = headerRegex.exec(pgn)) !== null) {
+      headers[match[1]] = match[2]
     }
+
+    return { headers, moves: history }
+  } catch (error) {
+    return { headers: {}, moves: [] }
   }
-  
-  return { headers, moves }
 }
 
 /**
  * Generate PGN from game data
  */
 export function generatePGN(
-  moves: string[], 
+  moves: string[],
   headers: Record<string, string> = {},
   result: string = '*'
 ): string {
-  let pgn = ''
-  
-  // Add headers
+  const game = new Chess()
+
+  // Make all the moves
+  for (const move of moves) {
+    try {
+      game.move(move)
+    } catch (error) {
+      console.error('Invalid move in PGN generation:', move)
+      break
+    }
+  }
+
+  // Set headers
   const defaultHeaders = {
     Event: 'Nostr Chess Game',
     Site: 'Nostr Network',
@@ -267,24 +334,37 @@ export function generatePGN(
     Result: result,
     ...headers,
   }
-  
-  for (const [key, value] of Object.entries(defaultHeaders)) {
-    pgn += `[${key} "${value}"]\n`
+
+  game.header(...Object.entries(defaultHeaders).flat() as any)
+
+  return game.pgn()
+}
+
+/**
+ * Validate FEN string
+ */
+export function validateFEN(fen: string): boolean {
+  try {
+    new Chess(fen)
+    return true
+  } catch (error) {
+    return false
   }
-  
-  pgn += '\n'
-  
-  // Add moves
-  for (let i = 0; i < moves.length; i += 2) {
-    const moveNumber = Math.floor(i / 2) + 1
-    pgn += `${moveNumber}. ${moves[i]}`
-    if (moves[i + 1]) {
-      pgn += ` ${moves[i + 1]}`
-    }
-    pgn += ' '
+}
+
+/**
+ * Get game result from position
+ */
+export function getGameResult(game: ChessEngine): '1-0' | '0-1' | '1/2-1/2' | '*' {
+  if (!game.isGameOver()) return '*'
+
+  if (game.isCheckmate()) {
+    return game.turn() === 'w' ? '0-1' : '1-0'
   }
-  
-  pgn += result
-  
-  return pgn.trim()
+
+  if (game.isDraw() || game.isStalemate() || game.isThreefoldRepetition() || game.isInsufficientMaterial()) {
+    return '1/2-1/2'
+  }
+
+  return '*'
 }

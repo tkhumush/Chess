@@ -1,4 +1,3 @@
-import React from 'react'
 import { useAppStore } from '@/stores/appStore'
 import ChessBoard from '@/components/ChessBoard'
 import MoveList from '@/components/MoveList'

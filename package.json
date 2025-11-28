@@ -1,0 +1,53 @@
+{
+  "name": "nostr-chess",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Decentralized multiplayer chess application using Nostr protocol",
+  "author": "Nostr Community",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "chess.js": "^1.0.0-beta.8",
+    "react-chessboard": "^4.7.1",
+    "nostr-tools": "^2.7.2",
+    "zustand": "^4.5.5",
+    "@tanstack/react-query": "^5.56.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.446.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.9",
+    "typescript": "^5.6.3",
+    "tailwindcss": "^3.4.14",
+    "postcss": "^8.4.47",
+    "autoprefixer": "^10.4.20",
+    "@types/node": "^22.8.4",
+    "eslint": "^8.57.1",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.12",
+    "vitest": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "jsdom": "^24.1.3",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/jest-dom": "^6.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
