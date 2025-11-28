@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Nostr Chess is a decentralized multiplayer chess web application built with React and TypeScript. It uses the Nostr protocol for game coordination while completely abstracting away protocol complexity from end users. The app is frontend-only with no backend required—all coordination happens through WebSocket connections to Nostr relays.
 
+## Current Status (Last Updated: 2025-11-27)
+
+**Phase 1: COMPLETED ✅**
+- Real chess.js integration (ChessEngine wrapper)
+- Real nostr-tools integration (NostrClient with SimplePool)
+- Game service layer implemented
+- React hooks created (useNostr, useGameOffers, useGameMoves, useGameActions)
+- All components have proper React imports
+- Development server running successfully
+- All dependencies installed (467 packages)
+
+**Known Issues:**
+- Browser may show white page initially - requires hard refresh after fixes
+- Components render but Nostr integration not yet wired to UI
+- Game state management works but needs connection to live components
+
 ## Development Commands
 
 ```bash
@@ -240,6 +256,55 @@ When working on specific features:
 - **UI layout**: `src/pages/GamePage.tsx`, `src/components/ChessBoard.tsx`
 - **Move chain validation**: See anti-cheat section in DESIGN.md
 
+## Next Steps (Priority Order)
+
+### 1. Wire Up Nostr in App.tsx (HIGH PRIORITY)
+Currently the `useNostr` hook is created but not used. Need to:
+```typescript
+// In App.tsx
+import { useNostr } from '@/hooks/useNostr'
+
+function App() {
+  const { isReady, error } = useNostr() // Initialize Nostr connection
+  // ... rest of component
+}
+```
+
+### 2. Update MatchmakingPanel to Use Real Offers
+Currently shows mock data. Need to:
+- Use `useGameOffers()` hook to get real offers from relays
+- Wire up `createGameOffer()` from `useGameActions()` when user creates offer
+- Display real offers from Nostr network
+
+### 3. Wire Up Move Publishing in ChessBoard
+When a move is made:
+- Call `publishMove()` from `useGameActions()` hook
+- Publish to Nostr relays with proper event chain
+- Update local state via `appStore.makeMove()`
+
+### 4. Implement Game Acceptance Flow
+When user accepts an offer:
+- Call `acceptOffer()` from `useGameActions()`
+- Create game state with `createGameState()`
+- Navigate to GamePage
+
+### 5. Subscribe to Opponent Moves
+In GamePage:
+- Use `useGameMoves(gameId)` hook
+- Listen for opponent's moves
+- Apply moves to local chess engine
+- Update UI
+
+### 6. Add Error Handling & Loading States
+- Show loading spinner during Nostr connection
+- Display error messages if relays fail
+- Handle offline/online transitions
+
+### 7. Add Lightning Zaps (Phase 4)
+- NIP-57 zap integration
+- Zap buttons on moves
+- Wallet connection
+
 ## Common Patterns
 
 ### Creating Nostr Events
@@ -250,3 +315,31 @@ Use Zustand actions to update state. Never mutate state directly. Most game acti
 
 ### Component Props
 Components receive minimal props. Most state comes from `useAppStore()` hook. This keeps components simple and reduces prop drilling.
+
+## Troubleshooting
+
+### White Page on Load
+If the browser shows a white page:
+1. Hard refresh: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+2. Check browser console (F12) for JavaScript errors
+3. Ensure all components have proper React imports (`useState`, `useEffect`, etc.)
+4. Check that `main.tsx` has `import React from 'react'` and `import ReactDOM from 'react-dom/client'`
+
+### Nostr Connection Issues
+If Nostr doesn't connect:
+1. Check browser console for relay errors
+2. Verify `VITE_DEFAULT_RELAYS` in `.env.local`
+3. Check that `useNostr()` hook is called in App.tsx
+4. Ensure keys are being generated (check localStorage for 'nostr-keys')
+
+### Chess.js Errors
+If chess moves fail:
+1. Verify move is in valid SAN notation (e.g., 'e4', 'Nf3', 'O-O')
+2. Check that ChessEngine is initialized properly
+3. Ensure FEN string is valid before loading
+
+### Build Errors
+If TypeScript errors occur:
+1. Run `npm run type-check` to see all errors
+2. Check that all imports are correct
+3. Ensure `@/` path alias is working (configured in vite.config.ts and tsconfig.json)
